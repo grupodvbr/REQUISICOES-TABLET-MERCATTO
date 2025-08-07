@@ -12,25 +12,30 @@
       --cor-cinza: #f1f1f1;
     }
 
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: 'Arial', sans-serif;
       background: white;
     }
 
     header {
       display: flex;
       align-items: center;
-      padding: 10px;
+      padding: 15px 20px;
+      border-bottom: 2px solid var(--cor-cinza);
     }
 
     header img {
-      height: 50px;
-      margin-right: 10px;
+      height: 60px;
+      margin-right: 15px;
     }
 
     header h1 {
-      font-size: 1.4em;
+      font-size: 1.6em;
       margin: 0;
       flex: 1;
       text-align: center;
@@ -42,20 +47,17 @@
       right: 10px;
       background: rgba(255, 255, 255, 0.95);
       border: 2px solid var(--cor-azul);
-      padding: 8px 12px;
-      border-radius: 5px;
-      font-size: 0.9em;
+      padding: 10px 15px;
+      border-radius: 6px;
+      font-size: 1em;
       display: none;
       z-index: 9999;
     }
 
     #overlay-carregando {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(255,255,255,0.95);
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255,255,255,0.9);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -65,67 +67,70 @@
     }
 
     #overlay-carregando img {
-      width: 120px;
-      height: auto;
+      width: 130px;
       margin-bottom: 15px;
     }
 
     #overlay-carregando p {
-      font-size: 1.2em;
+      font-size: 1.3em;
       font-weight: bold;
-      color: #333;
+      color: #444;
     }
 
     .filtros {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
-      padding: 10px;
       justify-content: center;
+      gap: 10px;
+      padding: 15px;
+      background: var(--cor-cinza);
     }
 
     .filtros input, .filtros select {
-      padding: 8px;
+      padding: 10px;
       font-size: 1em;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      min-width: 150px;
     }
 
     .filtros button {
-      padding: 10px 15px;
+      padding: 10px 20px;
+      font-size: 1em;
       font-weight: bold;
-      cursor: pointer;
-    }
-
-    .filtros .btn-filtrar {
       background: var(--cor-azul);
       color: white;
       border: none;
       border-radius: 5px;
+      cursor: pointer;
     }
 
     .acoes-topo {
       display: flex;
-      gap: 10px;
-      padding: 0 10px;
+      flex-wrap: wrap;
       justify-content: center;
+      gap: 12px;
+      padding: 10px 15px;
     }
 
     .acoes-topo button {
-      padding: 10px 15px;
+      padding: 12px 18px;
       border: none;
-      border-radius: 5px;
+      border-radius: 6px;
       font-weight: bold;
+      font-size: 1em;
       cursor: pointer;
       color: white;
     }
 
-    .btn-pdf { background: #007bff; }
-    .btn-whatsapp { background: #25d366; }
+    .btn-pdf { background: var(--cor-azul); }
+    .btn-whatsapp { background: var(--cor-verde); }
     .btn-print { background: #6c757d; }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 0.9em;
+      font-size: 1em;
     }
 
     thead {
@@ -134,25 +139,33 @@
     }
 
     th, td {
-      padding: 8px;
+      padding: 10px;
       border: 1px solid #ddd;
       text-align: center;
     }
 
     select.status-editar {
-      padding: 5px;
+      padding: 6px;
       border-radius: 4px;
+      font-size: 1em;
     }
 
     @media (max-width: 768px) {
-      th, td {
-        font-size: 0.8em;
-        padding: 6px;
+      header h1 {
+        font-size: 1.2em;
       }
 
-      .filtros, .acoes-topo {
+      .filtros input, .filtros select, .filtros button {
+        width: 100%;
+      }
+
+      .acoes-topo {
         flex-direction: column;
         align-items: stretch;
+      }
+
+      table {
+        font-size: 0.9em;
       }
     }
   </style>
@@ -160,12 +173,12 @@
 <body>
 
   <header>
-    <img src="https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png" alt="Logo CB Systems" />
+    <img src="https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png" alt="Logo" />
     <h1>Painel de Requisições Mercatto Delícia</h1>
   </header>
 
   <div id="overlay-carregando">
-    <img src="https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png" alt="Carregando" />
+    <img src="https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png" alt="Carregando..." />
     <p>Carregando...</p>
   </div>
 
@@ -184,7 +197,7 @@
       <option value="COMPRADO">COMPRADO</option>
       <option value="NEGADO">NEGADO</option>
     </select>
-    <button class="btn-filtrar" onclick="carregarDados()">🔎 Filtrar</button>
+    <button onclick="carregarDados()">🔎 Filtrar</button>
   </div>
 
   <div class="acoes-topo">
@@ -206,9 +219,7 @@
         <th>Status</th>
       </tr>
     </thead>
-    <tbody id="tabelaRequisicoes">
-      <!-- Dados serão inseridos aqui -->
-    </tbody>
+    <tbody id="tabelaRequisicoes"></tbody>
   </table>
 
   <script>
@@ -270,8 +281,7 @@
           headers: { 'Content-Type': 'application/json' }
         });
 
-        const resposta = await res.text();
-        console.log('Resposta do servidor:', resposta);
+        await res.text();
         await carregarDados();
       } catch (e) {
         console.error("Erro ao atualizar:", e);
