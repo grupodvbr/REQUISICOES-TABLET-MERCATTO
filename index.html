@@ -39,6 +39,19 @@
       text-align: center;
     }
 
+    #loading {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 2px solid var(--cor-azul);
+      padding: 10px 15px;
+      border-radius: 6px;
+      font-size: 1em;
+      display: none;
+      z-index: 9999;
+    }
+
     #overlay-carregando {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -155,6 +168,8 @@
     <p>Carregando...</p>
   </div>
 
+  <div id="loading">⏳ Atualizando...</div>
+
   <div class="filtros">
     <input type="date" id="dataDe" />
     <input type="time" id="horaInicial" />
@@ -194,21 +209,19 @@
   </table>
 
   <script>
-    const endpoint = 'https://script.google.com/macros/s/AKfycbzmqlfY7Bcr-2fkJt_KAQ_yQxZ8Z0EvEJ-GqCzK5RnJXPcJmU-YMwZA5p_aUijXoOvcOA/exec';
+    const endpoint = 'https://script.google.com/macros/s/AKfycbwzdhUDH5AFxqSTJ1MB0GLIEuLJayVov0-FD-slV40KUDKYKDIdOsvMCcP81fJ4dqAcqw/exec';
 
     async function carregarDados() {
-      const overlay = document.getElementById("overlay-carregando");
-      overlay.style.display = "flex";
-
+      document.getElementById("overlay-carregando").style.display = "flex";
       try {
-        const statusSelecionado = document.getElementById("statusFiltro").value;
         const res = await fetch(endpoint + '?acao=ler');
         const dados = await res.json();
         const tbody = document.getElementById("tabelaRequisicoes");
         tbody.innerHTML = "";
+        const statusSelecionado = document.getElementById("statusFiltro").value;
 
-        dados.forEach((item) => {
-          let statusUpper = (item.status || '').toUpperCase();
+        dados.forEach((item, index) => {
+          let statusUpper = (item["Status"] || '').toUpperCase();
           if (statusUpper === 'PROCESSANDO') statusUpper = 'PENDENTE';
           const statusFinal = ['COMPRADO', 'NEGADO'].includes(statusUpper) ? statusUpper : 'PENDENTE';
 
@@ -216,15 +229,15 @@
 
           const tr = document.createElement("tr");
           tr.innerHTML = `
-            <td>${item.dataHora}</td>
-            <td>${item.item}</td>
-            <td>${item.qtd}</td>
-            <td>${item.unidade}</td>
-            <td>${item.setor}</td>
-            <td>${item.solicitante}</td>
-            <td>${item.observacoes}</td>
+            <td>${item["Data e Hora"] || ''}</td>
+            <td>${item["Item"] || ''}</td>
+            <td>${item["Qtd"] || ''}</td>
+            <td>${item["Unidade"] || ''}</td>
+            <td>${item["Setor"] || ''}</td>
+            <td>${item["Solicitante"] || ''}</td>
+            <td>${item["Observações"] || ''}</td>
             <td>
-              <select class="status-editar" onchange="atualizarStatus('${item.id}', this.value)">
+              <select class="status-editar" onchange="atualizarStatus(${index + 2}, this.value)">
                 <option value="PENDENTE" ${statusFinal === 'PENDENTE' ? 'selected' : ''}>PENDENTE</option>
                 <option value="COMPRADO" ${statusFinal === 'COMPRADO' ? 'selected' : ''}>COMPRADO</option>
                 <option value="NEGADO" ${statusFinal === 'NEGADO' ? 'selected' : ''}>NEGADO</option>
@@ -234,30 +247,35 @@
           tbody.appendChild(tr);
         });
       } catch (e) {
-        console.error("Erro ao carregar dados:", e);
+        alert("Erro ao carregar dados.");
+        console.error(e);
       } finally {
         document.getElementById("overlay-carregando").style.display = "none";
       }
     }
 
-    async function atualizarStatus(id, novoStatus) {
-      const overlay = document.getElementById("overlay-carregando");
-      overlay.style.display = "flex";
-
+    async function atualizarStatus(linha, status) {
+      document.getElementById("overlay-carregando").style.display = "flex";
       try {
         const res = await fetch(endpoint, {
-          method: 'POST',
-          body: JSON.stringify({ acao: 'atualizarStatus', id, status: novoStatus }),
-          headers: { 'Content-Type': 'application/json' }
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            acao: "atualizarStatus",
+            linha: linha,
+            status: status
+          })
         });
 
-        await res.text();
-        await carregarDados();
+        const txt = await res.text();
+        if (!txt.toLowerCase().includes("ok")) {
+          alert("Erro ao atualizar status.");
+        }
       } catch (e) {
-        console.error("Erro ao atualizar:", e);
         alert("Erro ao atualizar status.");
+        console.error(e);
       } finally {
-        overlay.style.display = "none";
+        carregarDados();
       }
     }
 
