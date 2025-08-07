@@ -49,6 +49,33 @@
       z-index: 9999;
     }
 
+    #overlay-carregando {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255,255,255,0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9998;
+      display: none;
+    }
+
+    #overlay-carregando img {
+      width: 120px;
+      height: auto;
+      margin-bottom: 15px;
+    }
+
+    #overlay-carregando p {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #333;
+    }
+
     .filtros {
       display: flex;
       flex-wrap: wrap;
@@ -137,6 +164,11 @@
     <h1>Painel de Requisições Mercatto Delícia</h1>
   </header>
 
+  <div id="overlay-carregando">
+    <img src="https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png" alt="Carregando" />
+    <p>Carregando...</p>
+  </div>
+
   <div id="loading">⏳ Atualizando...</div>
 
   <div class="filtros">
@@ -183,6 +215,9 @@
     const endpoint = 'https://script.google.com/macros/s/AKfycbwWBkrVSCTv-LgP5iDi19D5sfzoSZKK3uDYVv8Bh0vOWwaQqeSaVTvrJ2Pcw8XVVjZoqA/exec';
 
     async function carregarDados() {
+      const overlay = document.getElementById("overlay-carregando");
+      overlay.style.display = "flex";
+
       try {
         const statusSelecionado = document.getElementById("statusFiltro").value;
         const res = await fetch(endpoint + '?acao=ler');
@@ -215,9 +250,10 @@
           `;
           tbody.appendChild(tr);
         });
-
       } catch (e) {
-        console.error('Erro ao carregar dados:', e);
+        console.error("Erro ao carregar dados:", e);
+      } finally {
+        overlay.style.display = "none";
       }
     }
 
