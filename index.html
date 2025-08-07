@@ -12,9 +12,7 @@
       --cor-cinza: #f1f1f1;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -151,22 +149,10 @@
     }
 
     @media (max-width: 768px) {
-      header h1 {
-        font-size: 1.2em;
-      }
-
-      .filtros input, .filtros select, .filtros button {
-        width: 100%;
-      }
-
-      .acoes-topo {
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      table {
-        font-size: 0.9em;
-      }
+      header h1 { font-size: 1.2em; }
+      .filtros input, .filtros select, .filtros button { width: 100%; }
+      .acoes-topo { flex-direction: column; align-items: stretch; }
+      table { font-size: 0.9em; }
     }
   </style>
 </head>
@@ -223,7 +209,7 @@
   </table>
 
   <script>
-    const endpoint = 'https://script.google.com/macros/s/AKfycby5R2A8dGEKyONcnoIPyGQlKIM1znE3fZK85DYk0h152NfHx9zShFsL5qIQP3K_IGahyw/exec';
+    const endpoint = 'https://script.google.com/macros/s/AKfycbzJ1ck9s_cawZ1dJ2iXijnN6NcWEjLJfkx3nCiR0Ef02bSRDVEtFnK-9DTuu0YwKdWlPQ/exec';
 
     async function carregarDados() {
       const overlay = document.getElementById("overlay-carregando");
@@ -237,8 +223,9 @@
         tbody.innerHTML = "";
 
         dados.forEach((item) => {
-          const statusUpper = (item.status || '').toUpperCase();
-          const statusFinal = (statusUpper === 'COMPRADO' || statusUpper === 'NEGADO') ? statusUpper : 'PENDENTE';
+          let statusUpper = (item.status || '').toUpperCase();
+          if (statusUpper === 'PROCESSANDO') statusUpper = 'PENDENTE';
+          const statusFinal = (['COMPRADO', 'NEGADO'].includes(statusUpper)) ? statusUpper : 'PENDENTE';
 
           if (statusSelecionado && statusSelecionado !== statusFinal) return;
 
@@ -273,14 +260,9 @@
       try {
         const res = await fetch(endpoint, {
           method: 'POST',
-          body: JSON.stringify({
-            acao: 'atualizarStatus',
-            id: id,
-            status: novoStatus
-          }),
+          body: JSON.stringify({ acao: 'atualizarStatus', id, status: novoStatus }),
           headers: { 'Content-Type': 'application/json' }
         });
-
         await res.text();
         await carregarDados();
       } catch (e) {
