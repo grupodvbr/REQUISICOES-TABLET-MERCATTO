@@ -39,19 +39,6 @@
       text-align: center;
     }
 
-    #loading {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      background: rgba(255, 255, 255, 0.95);
-      border: 2px solid var(--cor-azul);
-      padding: 10px 15px;
-      border-radius: 6px;
-      font-size: 1em;
-      display: none;
-      z-index: 9999;
-    }
-
     #overlay-carregando {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -168,8 +155,6 @@
     <p>Carregando...</p>
   </div>
 
-  <div id="loading">⏳ Atualizando...</div>
-
   <div class="filtros">
     <input type="date" id="dataDe" />
     <input type="time" id="horaInicial" />
@@ -225,7 +210,7 @@
         dados.forEach((item) => {
           let statusUpper = (item.status || '').toUpperCase();
           if (statusUpper === 'PROCESSANDO') statusUpper = 'PENDENTE';
-          const statusFinal = (['COMPRADO', 'NEGADO'].includes(statusUpper)) ? statusUpper : 'PENDENTE';
+          const statusFinal = ['COMPRADO', 'NEGADO'].includes(statusUpper) ? statusUpper : 'PENDENTE';
 
           if (statusSelecionado && statusSelecionado !== statusFinal) return;
 
@@ -251,24 +236,28 @@
       } catch (e) {
         console.error("Erro ao carregar dados:", e);
       } finally {
-        overlay.style.display = "none";
+        document.getElementById("overlay-carregando").style.display = "none";
       }
     }
 
     async function atualizarStatus(id, novoStatus) {
-      document.getElementById("loading").style.display = "block";
+      const overlay = document.getElementById("overlay-carregando");
+      overlay.style.display = "flex";
+
       try {
         const res = await fetch(endpoint, {
           method: 'POST',
           body: JSON.stringify({ acao: 'atualizarStatus', id, status: novoStatus }),
           headers: { 'Content-Type': 'application/json' }
         });
+
         await res.text();
         await carregarDados();
       } catch (e) {
         console.error("Erro ao atualizar:", e);
+        alert("Erro ao atualizar status.");
       } finally {
-        document.getElementById("loading").style.display = "none";
+        overlay.style.display = "none";
       }
     }
 
