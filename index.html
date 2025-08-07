@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel de Requisições Mercatto Delícia</title>
+  <style>
+    :root {
+      --cor-azul: #007bff;
+      --cor-verde: #28a745;
+      --cor-vermelho: #dc3545;
+      --cor-cinza: #f1f1f1;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: white;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+    }
+
+    header img {
+      height: 50px;
+      margin-right: 10px;
+    }
+
+    header h1 {
+      font-size: 1.4em;
+      margin: 0;
+      flex: 1;
+      text-align: center;
+    }
+
+    .filtros {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 10px;
+      justify-content: center;
+    }
+
+    .filtros input, .filtros select {
+      padding: 8px;
+      font-size: 1em;
+    }
+
+    .filtros button {
+      padding: 10px 15px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .filtros .btn-filtrar {
+      background: var(--cor-azul);
+      color: white;
+      border: none;
+      border-radius: 5px;
+    }
+
+    .acoes-topo {
+      display: flex;
+      gap: 10px;
+      padding: 0 10px;
+      justify-content: center;
+    }
+
+    .acoes-topo button {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      color: white;
+    }
+
+    .btn-pdf { background: #007bff; }
+    .btn-whatsapp { background: #25d366; }
+    .btn-print { background: #6c757d; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9em;
+    }
+
+    thead {
+      background: var(--cor-azul);
+      color: white;
+    }
+
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
+    select.status-editar {
+      padding: 5px;
+      border-radius: 4px;
+    }
+
+    @media (max-width: 768px) {
+      th, td {
+        font-size: 0.8em;
+        padding: 6px;
+      }
+
+      .filtros, .acoes-topo {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <img src="https://i.imgur.com/b7RHhzD.png" alt="Logo CB Systems" />
+    <h1>Painel de Requisições Mercatto Delícia</h1>
+  </header>
+
+  <div class="filtros">
+    <input type="date" id="dataDe" />
+    <input type="time" id="horaInicial" />
+    <input type="date" id="dataAte" />
+    <input type="time" id="horaFinal" />
+    <select id="solicitante"><option>Todos</option></select>
+    <select id="setor"><option>Todos</option></select>
+    <input type="text" id="palavraChave" placeholder="Buscar item ou observação" />
+    <select id="statusFiltro">
+      <option value="PENDENTE">PENDENTE</option>
+      <option value="COMPRADO">COMPRADO</option>
+      <option value="NEGADO">NEGADO</option>
+    </select>
+    <button class="btn-filtrar" onclick="carregarDados()">🔎 Filtrar</button>
+  </div>
+
+  <div class="acoes-topo">
+    <button class="btn-pdf">📊 PDF</button>
+    <button class="btn-whatsapp">📱 WhatsApp</button>
+    <button class="btn-print">🖨️ Imprimir</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Data e Hora</th>
+        <th>Item</th>
+        <th>Qtd</th>
+        <th>Unidade</th>
+        <th>Setor</th>
+        <th>Solicitante</th>
+        <th>Observações</th>
+        <th>Status</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody id="tabelaRequisicoes">
+      <!-- Dados serão inseridos aqui -->
+    </tbody>
+  </table>
+
+  <script>
+    const endpoint = 'https://script.google.com/macros/s/SEU_ENDPOINT_AQUI/exec';
+
+    async function carregarDados() {
+      const res = await fetch(endpoint + '?acao=ler');
+      const dados = await res.json();
+      const tbody = document.getElementById("tabelaRequisicoes");
+      tbody.innerHTML = "";
+
+      dados.forEach((item, i) => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td>${item.dataHora}</td>
+          <td>${item.item}</td>
+          <td>${item.qtd}</td>
+          <td>${item.unidade}</td>
+          <td>${item.setor}</td>
+          <td>${item.solicitante}</td>
+          <td>${item.observacoes}</td>
+          <td>
+            <select class="status-editar" onchange="atualizarStatus('${item.id}', this.value)">
+              <option ${item.status === 'PENDENTE' ? 'selected' : ''}>PENDENTE</option>
+              <option ${item.status === 'COMPRADO' ? 'selected' : ''}>COMPRADO</option>
+              <option ${item.status === 'NEGADO' ? 'selected' : ''}>NEGADO</option>
+            </select>
+          </td>
+          <td><button onclick="atualizarStatus('${item.id}', 'COMPRADO')">✔️</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function atualizarStatus(id, novoStatus) {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        body: JSON.stringify({
+          acao: 'atualizarStatus',
+          id: id,
+          status: novoStatus
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const texto = await res.text();
+      console.log("Atualizado:", texto);
+      carregarDados(); // recarrega
+    }
+
+    // Auto carregamento inicial
+    carregarDados();
+  </script>
+</body>
+</html>
