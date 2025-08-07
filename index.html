@@ -180,17 +180,20 @@
   </table>
 
   <script>
-    const endpoint = 'https://script.google.com/macros/s/AKfycby-6ZiCpZHM1FWkx5p73Ba63Yfvw303FNs42OvVI2XihoWkDXzH7nw8cuw8X7Mz-VMdkg/exec';
+    const endpoint = 'https://script.google.com/macros/s/AKfycbwWBkrVSCTv-LgP5iDi19D5sfzoSZKK3uDYVv8Bh0vOWwaQqeSaVTvrJ2Pcw8XVVjZoqA/exec';
 
     async function carregarDados() {
+      const statusSelecionado = document.getElementById("statusFiltro").value;
       const res = await fetch(endpoint + '?acao=ler');
       const dados = await res.json();
       const tbody = document.getElementById("tabelaRequisicoes");
       tbody.innerHTML = "";
 
       dados.forEach((item) => {
-        const statusUpper = item.status ? item.status.toUpperCase() : '';
+        const statusUpper = (item.status || '').toUpperCase();
         const statusFinal = (statusUpper === 'COMPRADO' || statusUpper === 'NEGADO') ? statusUpper : 'PENDENTE';
+
+        if (statusSelecionado && statusSelecionado !== statusFinal) return;
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
