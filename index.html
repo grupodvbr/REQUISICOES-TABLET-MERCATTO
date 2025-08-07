@@ -183,37 +183,42 @@
     const endpoint = 'https://script.google.com/macros/s/AKfycbwWBkrVSCTv-LgP5iDi19D5sfzoSZKK3uDYVv8Bh0vOWwaQqeSaVTvrJ2Pcw8XVVjZoqA/exec';
 
     async function carregarDados() {
-      const statusSelecionado = document.getElementById("statusFiltro").value;
-      const res = await fetch(endpoint + '?acao=ler');
-      const dados = await res.json();
-      const tbody = document.getElementById("tabelaRequisicoes");
-      tbody.innerHTML = "";
+      try {
+        const statusSelecionado = document.getElementById("statusFiltro").value;
+        const res = await fetch(endpoint + '?acao=ler');
+        const dados = await res.json();
+        const tbody = document.getElementById("tabelaRequisicoes");
+        tbody.innerHTML = "";
 
-      dados.forEach((item) => {
-        const statusUpper = (item.status || '').toUpperCase();
-        const statusFinal = (statusUpper === 'COMPRADO' || statusUpper === 'NEGADO') ? statusUpper : 'PENDENTE';
+        dados.forEach((item) => {
+          const statusUpper = (item.status || '').toUpperCase();
+          const statusFinal = (statusUpper === 'COMPRADO' || statusUpper === 'NEGADO') ? statusUpper : 'PENDENTE';
 
-        if (statusSelecionado && statusSelecionado !== statusFinal) return;
+          if (statusSelecionado && statusSelecionado !== statusFinal) return;
 
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${item.dataHora}</td>
-          <td>${item.item}</td>
-          <td>${item.qtd}</td>
-          <td>${item.unidade}</td>
-          <td>${item.setor}</td>
-          <td>${item.solicitante}</td>
-          <td>${item.observacoes}</td>
-          <td>
-            <select class="status-editar" onchange="atualizarStatus('${item.id}', this.value)">
-              <option value="PENDENTE" ${statusFinal === 'PENDENTE' ? 'selected' : ''}>PENDENTE</option>
-              <option value="COMPRADO" ${statusFinal === 'COMPRADO' ? 'selected' : ''}>COMPRADO</option>
-              <option value="NEGADO" ${statusFinal === 'NEGADO' ? 'selected' : ''}>NEGADO</option>
-            </select>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${item.dataHora}</td>
+            <td>${item.item}</td>
+            <td>${item.qtd}</td>
+            <td>${item.unidade}</td>
+            <td>${item.setor}</td>
+            <td>${item.solicitante}</td>
+            <td>${item.observacoes}</td>
+            <td>
+              <select class="status-editar" onchange="atualizarStatus('${item.id}', this.value)">
+                <option value="PENDENTE" ${statusFinal === 'PENDENTE' ? 'selected' : ''}>PENDENTE</option>
+                <option value="COMPRADO" ${statusFinal === 'COMPRADO' ? 'selected' : ''}>COMPRADO</option>
+                <option value="NEGADO" ${statusFinal === 'NEGADO' ? 'selected' : ''}>NEGADO</option>
+              </select>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+      } catch (e) {
+        console.error('Erro ao carregar dados:', e);
+      }
     }
 
     async function atualizarStatus(id, novoStatus) {
@@ -228,7 +233,9 @@
           }),
           headers: { 'Content-Type': 'application/json' }
         });
-        await res.text();
+
+        const resposta = await res.text();
+        console.log('Resposta do servidor:', resposta);
         await carregarDados();
       } catch (e) {
         console.error("Erro ao atualizar:", e);
