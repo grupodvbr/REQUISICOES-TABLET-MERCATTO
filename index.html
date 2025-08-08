@@ -10,6 +10,7 @@
       --cor-azul: #007bff;
       --cor-vermelho: #dc3545;
       --cor-cinza: #f1f1f1;
+      --cor-verde: #28a745;
     }
     * { box-sizing: border-box; }
     body {
@@ -52,6 +53,17 @@
       border: none;
       cursor: pointer;
     }
+    .alerta {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      background: var(--cor-verde);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      display: none;
+      z-index: 9999;
+    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -88,7 +100,10 @@
       <option value="COMPRADO">COMPRADO</option>
     </select>
     <button onclick="carregarRequisicoes()">🔍 Filtrar</button>
+    <button onclick="liquidarMassa()">💰 Marcar Filtrados como COMPRADO</button>
   </div>
+
+  <div class="alerta" id="alertaStatus">Atualizando status...</div>
 
   <table>
     <thead>
@@ -107,11 +122,16 @@
   </table>
 
   <script>
-    const endpoint = 'https://script.google.com/macros/s/AKfycbwG51R6oAbI22p8qWfEMmcW8IUyfq0S_l1ffOzTPdjLCScSt1JmEl-JBNqbFUQSbbPTLg/exec'; // Substitua com seu script ID
+    const endpoint = 'https://script.google.com/macros/s/AKfycbwG51R6oAbI22p8qWfEMmcW8IUyfq0S_l1ffOzTPdjLCScSt1JmEl-JBNqbFUQSbbPTLg/exec';
+    let dadosRequisicoes = [];
 
     async function carregarRequisicoes() {
       const res = await fetch(`${endpoint}?acao=ler`);
-      const dados = await res.json();
+      dadosRequisicoes = await res.json();
+      filtrarRequisicoes();
+    }
+
+    function filtrarRequisicoes() {
       const tabela = document.getElementById('tabelaRequisicoes');
       tabela.innerHTML = '';
       const filtroStatus = document.getElementById('filtroStatus').value;
@@ -120,7 +140,7 @@
       const dataInicio = document.getElementById('dataInicio').value;
       const dataFim = document.getElementById('dataFim').value;
 
-      dados.forEach((item) => {
+      dadosRequisicoes.forEach((item) => {
         const dataFormatada = item.dataHora?.split(' ')[0] || '';
         if (filtroStatus !== 'TODOS' && item.status !== filtroStatus) return;
         if (filtroItem && !item.item.toLowerCase().includes(filtroItem)) return;
@@ -148,12 +168,46 @@
     }
 
     async function atualizarStatus(index, status) {
+      mostrarAlerta("Atualizando status...");
       await fetch(endpoint, {
         method: 'POST',
         body: JSON.stringify({ acao: 'atualizarStatus', index, status })
       });
-      alert("Status atualizado com sucesso!");
       carregarRequisicoes();
+    }
+
+    async function liquidarMassa() {
+      const filtroStatus = document.getElementById('filtroStatus').value;
+      const filtroItem = document.getElementById('filtroItem').value.toLowerCase();
+      const filtroSolicitante = document.getElementById('filtroSolicitante').value.toLowerCase();
+      const dataInicio = document.getElementById('dataInicio').value;
+      const dataFim = document.getElementById('dataFim').value;
+
+      const filtrados = dadosRequisicoes.filter((item) => {
+        const dataFormatada = item.dataHora?.split(' ')[0] || '';
+        if (filtroStatus !== 'TODOS' && item.status !== filtroStatus) return false;
+        if (filtroItem && !item.item.toLowerCase().includes(filtroItem)) return false;
+        if (filtroSolicitante && !item.solicitante.toLowerCase().includes(filtroSolicitante)) return false;
+        if (dataInicio && dataFormatada < dataInicio) return false;
+        if (dataFim && dataFormatada > dataFim) return false;
+        return true;
+      });
+
+      mostrarAlerta("Atualizando status...");
+      for (const item of filtrados) {
+        await fetch(endpoint, {
+          method: 'POST',
+          body: JSON.stringify({ acao: 'atualizarStatus', index: item.index, status: 'COMPRADO' })
+        });
+      }
+      carregarRequisicoes();
+    }
+
+    function mostrarAlerta(msg) {
+      const alerta = document.getElementById('alertaStatus');
+      alerta.textContent = msg;
+      alerta.style.display = 'block';
+      setTimeout(() => alerta.style.display = 'none', 3000);
     }
 
     carregarRequisicoes();
