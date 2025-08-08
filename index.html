@@ -1,3 +1,4 @@
+<!-- Painel atualizado com mudança de status em massa -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -11,70 +12,47 @@
       --cor-vermelho: #dc3545;
       --cor-cinza: #f1f1f1;
     }
-
     * { box-sizing: border-box; }
-
     body {
       margin: 0;
       font-family: 'Arial', sans-serif;
       background: white;
     }
-
     header {
       display: flex;
       align-items: center;
       padding: 15px 20px;
       border-bottom: 2px solid var(--cor-cinza);
     }
-
     header img {
       height: 60px;
       margin-right: 15px;
     }
-
     header h1 {
       font-size: 1.6em;
       margin: 0;
       flex: 1;
       text-align: center;
     }
-
-    #loading {
-      position: fixed;
-      top: 10px;
-      right: 10px;
-      background: rgba(255, 255, 255, 0.95);
-      border: 2px solid var(--cor-azul);
-      padding: 10px 15px;
-      border-radius: 6px;
-      font-size: 1em;
-      display: none;
-      z-index: 9999;
-    }
-
     #overlay-carregando {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(255,255,255,0.9);
-      display: flex;
+      display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       z-index: 9998;
-      display: none;
     }
-
     #overlay-carregando img {
       width: 130px;
       margin-bottom: 15px;
     }
-
     #overlay-carregando p {
       font-size: 1.3em;
       font-weight: bold;
       color: #444;
     }
-
     .filtros {
       display: flex;
       flex-wrap: wrap;
@@ -83,7 +61,6 @@
       padding: 15px;
       background: var(--cor-cinza);
     }
-
     .filtros input, .filtros select {
       padding: 10px;
       font-size: 1em;
@@ -91,7 +68,6 @@
       border: 1px solid #ccc;
       min-width: 150px;
     }
-
     .filtros button {
       padding: 10px 20px;
       font-size: 1em;
@@ -102,62 +78,34 @@
       border-radius: 5px;
       cursor: pointer;
     }
-
-    .acoes-topo {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 12px;
-      padding: 10px 15px;
-    }
-
-    .acoes-topo button {
-      padding: 12px 18px;
-      border: none;
-      border-radius: 6px;
-      font-weight: bold;
-      font-size: 1em;
-      cursor: pointer;
-      color: white;
-    }
-
-    .btn-pdf { background: var(--cor-azul); }
-    .btn-whatsapp { background: var(--cor-verde); }
-    .btn-print { background: #6c757d; }
-
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 1em;
     }
-
     thead {
       background: var(--cor-azul);
       color: white;
     }
-
     th, td {
       padding: 10px;
       border: 1px solid #ddd;
       text-align: center;
     }
-
-    select.status-editar {
-      padding: 6px;
-      border-radius: 4px;
-      font-size: 1em;
+    .acoes-topo {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin: 15px 0;
     }
-
     @media (max-width: 768px) {
-      header h1 { font-size: 1.2em; }
-      .filtros input, .filtros select, .filtros button { width: 100%; }
-      .acoes-topo { flex-direction: column; align-items: stretch; }
-      table { font-size: 0.9em; }
+      .filtros input, .filtros select, .filtros button, .acoes-topo button {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
-
   <header>
     <img src="https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png" alt="Logo" />
     <h1>Painel de Requisições Mercatto Delícia</h1>
@@ -167,8 +115,6 @@
     <img src="https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png" alt="Carregando..." />
     <p>Carregando...</p>
   </div>
-
-  <div id="loading">⏳ Atualizando...</div>
 
   <div class="filtros">
     <input type="date" id="dataDe" />
@@ -187,9 +133,13 @@
   </div>
 
   <div class="acoes-topo">
-    <button class="btn-pdf">📊 PDF</button>
-    <button class="btn-whatsapp">📱 WhatsApp</button>
-    <button class="btn-print">🖨️ Imprimir</button>
+    <select id="novoStatusMassa">
+      <option value="">Alterar status para...</option>
+      <option value="COMPRADO">COMPRADO</option>
+      <option value="NEGADO">NEGADO</option>
+      <option value="PENDENTE">PENDENTE</option>
+    </select>
+    <button onclick="alterarStatusEmMassa()">✅ Aplicar em Massa</button>
   </div>
 
   <table>
@@ -210,6 +160,7 @@
 
   <script>
     const endpoint = 'https://script.google.com/macros/s/AKfycbyo1gJt-YHjvGw_XMvLKfCKf3KZ3SsnlqSl1XYorIThQVoZJY5Z1tbn2eDnZQrYeGcZdQ/exec';
+    let dadosFiltrados = [];
 
     async function carregarDados() {
       document.getElementById("overlay-carregando").style.display = "flex";
@@ -218,14 +169,18 @@
         const dados = await res.json();
         const tbody = document.getElementById("tabelaRequisicoes");
         tbody.innerHTML = "";
+        dadosFiltrados = [];
+
         const statusSelecionado = document.getElementById("statusFiltro").value;
 
-        dados.forEach((item, index) => {
-          let statusUpper = (item["Status"] || '').toUpperCase();
-          if (statusUpper === 'PROCESSANDO') statusUpper = 'PENDENTE';
-          const statusFinal = ['COMPRADO', 'NEGADO'].includes(statusUpper) ? statusUpper : 'PENDENTE';
+        dados.forEach(item => {
+          let status = (item["Status"] || '').toUpperCase();
+          if (status === 'PROCESSANDO') status = 'PENDENTE';
 
+          const statusFinal = ['COMPRADO', 'NEGADO'].includes(status) ? status : 'PENDENTE';
           if (statusSelecionado && statusSelecionado !== statusFinal) return;
+
+          dadosFiltrados.push({ linha: item.linha, statusAtual: statusFinal });
 
           const tr = document.createElement("tr");
           tr.innerHTML = `
@@ -236,13 +191,7 @@
             <td>${item["Setor"] || ''}</td>
             <td>${item["Solicitante"] || ''}</td>
             <td>${item["Observações"] || ''}</td>
-            <td>
-              <select class="status-editar" onchange="atualizarStatus(${index + 2}, this.value)">
-                <option value="PENDENTE" ${statusFinal === 'PENDENTE' ? 'selected' : ''}>PENDENTE</option>
-                <option value="COMPRADO" ${statusFinal === 'COMPRADO' ? 'selected' : ''}>COMPRADO</option>
-                <option value="NEGADO" ${statusFinal === 'NEGADO' ? 'selected' : ''}>NEGADO</option>
-              </select>
-            </td>
+            <td>${statusFinal}</td>
           `;
           tbody.appendChild(tr);
         });
@@ -254,29 +203,31 @@
       }
     }
 
-    async function atualizarStatus(linha, status) {
-      document.getElementById("overlay-carregando").style.display = "flex";
-      try {
-        const res = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            acao: "atualizarStatus",
-            linha: linha,
-            status: status
-          })
-        });
+    async function alterarStatusEmMassa() {
+      const novoStatus = document.getElementById("novoStatusMassa").value;
+      if (!novoStatus) return alert("Selecione um novo status.");
 
-        const txt = await res.text();
-        if (!txt.toLowerCase().includes("ok")) {
-          alert("Erro ao atualizar status.");
+      if (!confirm(`Deseja alterar o status de ${dadosFiltrados.length} itens para "${novoStatus}"?`)) return;
+
+      document.getElementById("overlay-carregando").style.display = "flex";
+
+      for (const item of dadosFiltrados) {
+        try {
+          await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              acao: "atualizarStatus",
+              linha: item.linha,
+              status: novoStatus
+            })
+          });
+        } catch (e) {
+          console.error("Erro ao atualizar linha", item.linha, e);
         }
-      } catch (e) {
-        alert("Erro ao atualizar status.");
-        console.error(e);
-      } finally {
-        carregarDados();
       }
+
+      carregarDados();
     }
 
     carregarDados();
