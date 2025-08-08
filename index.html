@@ -21,31 +21,33 @@
     header {
       display: flex;
       align-items: center;
-      padding: 15px;
+      padding: 10px;
       background: white;
       border-bottom: 2px solid var(--cor-cinza);
+      flex-wrap: wrap;
     }
     header img {
-      height: 50px;
+      height: 40px;
       margin-right: 10px;
     }
     header h1 {
       margin: 0;
-      font-size: 1.5em;
+      font-size: 1.2em;
     }
     .filtros {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 10px;
-      padding: 15px;
+      padding: 10px;
       background: white;
     }
     .filtros input, .filtros select, .filtros button {
-      padding: 8px;
-      font-size: 14px;
+      padding: 6px;
+      font-size: 12px;
       border-radius: 4px;
       border: 1px solid #ccc;
+      flex: 1 1 150px;
     }
     .filtros button {
       background: var(--cor-azul);
@@ -68,18 +70,19 @@
       width: 100%;
       border-collapse: collapse;
       background: white;
+      font-size: 12px;
     }
     thead {
       background: var(--cor-azul);
       color: white;
     }
     th, td {
-      padding: 8px;
+      padding: 6px;
       border: 1px solid #ddd;
       text-align: center;
     }
     select.status {
-      padding: 5px;
+      padding: 4px;
     }
   </style>
 </head>
@@ -98,9 +101,13 @@
       <option value="TODOS">TODOS</option>
       <option value="PENDENTE">PENDENTE</option>
       <option value="COMPRADO">COMPRADO</option>
+      <option value="NO CARRINHO">NO CARRINHO</option>
+      <option value="NEGADO">NEGADO</option>
     </select>
     <button onclick="carregarRequisicoes()">🔍 Filtrar</button>
-    <button onclick="liquidarMassa()">💰 Marcar Filtrados como COMPRADO</button>
+    <button onclick="liquidarMassa('COMPRADO')">💰 Marcar como COMPRADO</button>
+    <button onclick="liquidarMassa('NO CARRINHO')">🛒 Marcar como NO CARRINHO</button>
+    <button onclick="liquidarMassa('NEGADO')">❌ Marcar como NEGADO</button>
   </div>
 
   <div class="alerta" id="alertaStatus">Atualizando status...</div>
@@ -122,7 +129,7 @@
   </table>
 
   <script>
-    const endpoint = 'https://script.google.com/macros/s/AKfycbwG51R6oAbI22p8qWfEMmcW8IUyfq0S_l1ffOzTPdjLCScSt1JmEl-JBNqbFUQSbbPTLg/exec';
+    const endpoint = 'https://script.google.com/macros/s/AKfycbzpA5pl1XyRoEdQ0edKhNHq_ZpUpmx4nHVy9-joLjizMZgw0WmM1A7FVrjjx-N2Cijchg/exec';
     let dadosRequisicoes = [];
 
     async function carregarRequisicoes() {
@@ -161,6 +168,8 @@
             <select class="status" onchange="atualizarStatus(${item.index}, this.value)">
               <option value="PENDENTE" ${item.status === 'PENDENTE' ? 'selected' : ''}>PENDENTE</option>
               <option value="COMPRADO" ${item.status === 'COMPRADO' ? 'selected' : ''}>COMPRADO</option>
+              <option value="NO CARRINHO" ${item.status === 'NO CARRINHO' ? 'selected' : ''}>NO CARRINHO</option>
+              <option value="NEGADO" ${item.status === 'NEGADO' ? 'selected' : ''}>NEGADO</option>
             </select>
           </td>`;
         tabela.appendChild(tr);
@@ -176,7 +185,7 @@
       carregarRequisicoes();
     }
 
-    async function liquidarMassa() {
+    async function liquidarMassa(statusDesejado) {
       const filtroStatus = document.getElementById('filtroStatus').value;
       const filtroItem = document.getElementById('filtroItem').value.toLowerCase();
       const filtroSolicitante = document.getElementById('filtroSolicitante').value.toLowerCase();
@@ -197,7 +206,7 @@
       for (const item of filtrados) {
         await fetch(endpoint, {
           method: 'POST',
-          body: JSON.stringify({ acao: 'atualizarStatus', index: item.index, status: 'COMPRADO' })
+          body: JSON.stringify({ acao: 'atualizarStatus', index: item.index, status: statusDesejado })
         });
       }
       carregarRequisicoes();
