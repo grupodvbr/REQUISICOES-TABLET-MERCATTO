@@ -1,4 +1,3 @@
-<!-- Painel adaptado para REQUISIÇÕES MERCATTO com filtros e dados da planilha enviada -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -103,6 +102,57 @@
     select.status {
       padding: 4px;
     }
+    #menu-solicitantes {
+      position: fixed;
+      bottom: 70px;
+      right: 20px;
+      background: var(--cor-azul);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 12px 18px;
+      font-size: 14px;
+      cursor: pointer;
+      z-index: 1000;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    }
+    #lista-solicitantes {
+      position: fixed;
+      bottom: 120px;
+      right: 20px;
+      background: white;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      z-index: 1001;
+      display: none;
+      padding: 10px;
+      font-size: 13px;
+    }
+    #lista-solicitantes div {
+      padding: 5px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+    }
+    #lista-solicitantes div:hover {
+      background: #f0f0f0;
+    }
+    #relatorio {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--cor-verde);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      padding: 12px 18px;
+      font-size: 14px;
+      cursor: pointer;
+      z-index: 1000;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+    }
   </style>
 </head>
 <body>
@@ -152,6 +202,13 @@
     <tbody id="tabelaRequisicoes"></tbody>
   </table>
 
+  <!-- Menu Flutuante -->
+  <button id="menu-solicitantes" onclick="toggleSolicitantes()">👤 Solicitantes</button>
+  <div id="lista-solicitantes"></div>
+
+  <!-- Botão Relatório -->
+  <button id="relatorio" onclick="gerarRelatorio()">📤 Enviar Relatório</button>
+
   <script>
     const endpoint = 'https://script.google.com/macros/s/AKfycbyKdPRq8z-XzHzGP0SfL_TEBVoceAzW9bdDgBVLu0W-EMN6YEkQU2AEq7NPW2k-41MHog/exec';
     let dadosRequisicoes = [];
@@ -162,6 +219,17 @@
       dadosRequisicoes = await res.json();
       filtrarRequisicoes();
       document.getElementById("overlay-carregando").style.display = "none";
+    }
+
+    function formatarDataHora(dataHoraOriginal) {
+      if (!dataHoraOriginal) return "";
+      const partes = dataHoraOriginal.split(" ");
+      const data = partes[0];
+      const hora = partes[1] || '';
+      const [ano, mes, dia] = data.split("-");
+      const meses = ["janeiro", "fevereiro", "março", "abril", "maio", "junho",
+                     "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+      return `${dia} ${meses[parseInt(mes) - 1]} ${ano} - ${hora}`;
     }
 
     function filtrarRequisicoes() {
@@ -185,7 +253,6 @@
           if (statusFiltrado === 'PENDENTE' && !consideraPendente) return;
           if (statusFiltrado !== 'PENDENTE' && statusAtual !== statusFiltrado) return;
         }
-
         if (filtroItem && !item.item.toLowerCase().includes(filtroItem)) return;
         if (filtroSolicitante && !item.solicitante.toLowerCase().includes(filtroSolicitante)) return;
         if (dataInicio && dataFormatada < dataInicio) return;
@@ -193,7 +260,7 @@
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${item.dataHora}</td>
+          <td>${formatarDataHora(item.dataHora)}</td>
           <td>${item.item}</td>
           <td>${item.qtd}</td>
           <td>${item.unidade}</td>
@@ -223,13 +290,29 @@
       carregarRequisicoes();
     }
 
+    function toggleSolicitantes() {
+      const lista = document.getElementById("lista-solicitantes");
+      if (lista.style.display === "block") {
+        lista.style.display = "none";
+        return;
+      }
+      const nomesUnicos = [...new Set(dadosRequisicoes.map(r => r.solicitante).filter(Boolean))];
+      lista.innerHTML = nomesUnicos.map(nome => `<div onclick="filtrarPorSolicitante('${nome}')">${nome}</div>`).join('');
+      lista.style.display = "block";
+    }
+
+    function filtrarPorSolicitante(nome) {
+      document.getElementById("filtroSolicitante").value = nome;
+      filtrarRequisicoes();
+      document.getElementById("lista-solicitantes").style.display = "none";
+    }
+
     async function liquidarMassa(statusDesejado) {
       const filtroStatus = document.getElementById('filtroStatus').value;
       const filtroItem = document.getElementById('filtroItem').value.toLowerCase();
       const filtroSolicitante = document.getElementById('filtroSolicitante').value.toLowerCase();
       const dataInicio = document.getElementById('dataInicio').value;
       const dataFim = document.getElementById('dataFim').value;
-
       const statusValidos = ['COMPRADO', 'NO CARRINHO', 'NEGADO', 'ENTREGUE', 'SEM ESTOQUE'];
 
       const filtrados = dadosRequisicoes.filter((item) => {
@@ -263,6 +346,21 @@
       alerta.textContent = msg;
       alerta.style.display = 'block';
       setTimeout(() => alerta.style.display = 'none', 3000);
+    }
+
+    function gerarRelatorio() {
+      const agrupar = confirm("Deseja agrupar o relatório por solicitante?");
+      const filtroSolicitante = document.getElementById('filtroSolicitante').value.toLowerCase();
+      const filtroStatus = document.getElementById('filtroStatus').value;
+      const linhas = Array.from(document.querySelectorAll('#tabelaRequisicoes tr')).map(tr => Array.from(tr.children).map(td => td.innerText));
+      let conteudo = `<img src='https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png' height='60'><br><h2>Relatório de Requisições</h2><table border='1' cellspacing='0' cellpadding='4'><thead><tr><th>Data e Hora</th><th>Item</th><th>Qtd</th><th>Unidade</th><th>Setor</th><th>Solicitante</th><th>Observações</th><th>Status</th></tr></thead><tbody>`;
+      linhas.forEach(l => {
+        conteudo += "<tr>" + l.map(c => `<td>${c}</td>`).join('') + "</tr>";
+      });
+      conteudo += "</tbody></table>";
+      const win = window.open("", "Relatório");
+      win.document.write(`<html><head><title>Relatório</title></head><body>${conteudo}</body></html>`);
+      win.document.close();
     }
 
     carregarRequisicoes();
