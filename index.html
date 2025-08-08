@@ -349,19 +349,41 @@
     }
 
     function gerarRelatorio() {
-      const agrupar = confirm("Deseja agrupar o relatório por solicitante?");
-      const filtroSolicitante = document.getElementById('filtroSolicitante').value.toLowerCase();
-      const filtroStatus = document.getElementById('filtroStatus').value;
-      const linhas = Array.from(document.querySelectorAll('#tabelaRequisicoes tr')).map(tr => Array.from(tr.children).map(td => td.innerText));
-      let conteudo = `<img src='https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png' height='60'><br><h2>Relatório de Requisições</h2><table border='1' cellspacing='0' cellpadding='4'><thead><tr><th>Data e Hora</th><th>Item</th><th>Qtd</th><th>Unidade</th><th>Setor</th><th>Solicitante</th><th>Observações</th><th>Status</th></tr></thead><tbody>`;
-      linhas.forEach(l => {
-        conteudo += "<tr>" + l.map(c => `<td>${c}</td>`).join('') + "</tr>";
-      });
-      conteudo += "</tbody></table>";
-      const win = window.open("", "Relatório");
-      win.document.write(`<html><head><title>Relatório</title></head><body>${conteudo}</body></html>`);
-      win.document.close();
-    }
+  const linhas = Array.from(document.querySelectorAll('#tabelaRequisicoes tr')).map(tr => {
+    const colunas = Array.from(tr.children);
+    colunas.pop(); // Remove a última coluna (Status)
+    return colunas.map(td => td.innerText);
+  });
+
+  let conteudo = `
+    <img src='https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png' height='60'>
+    <br><h2>Relatório de Requisições</h2>
+    <table border='1' cellspacing='0' cellpadding='4'>
+      <thead>
+        <tr>
+          <th>Data e Hora</th>
+          <th>Item</th>
+          <th>Qtd</th>
+          <th>Unidade</th>
+          <th>Setor</th>
+          <th>Solicitante</th>
+          <th>Observações</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  linhas.forEach(l => {
+    conteudo += "<tr>" + l.map(c => `<td>${c}</td>`).join('') + "</tr>";
+  });
+
+  conteudo += "</tbody></table>";
+
+  const win = window.open("", "Relatório");
+  win.document.write(`<html><head><title>Relatório</title></head><body>${conteudo}</body></html>`);
+  win.document.close();
+}
+
 
     carregarRequisicoes();
   </script>
