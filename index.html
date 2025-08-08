@@ -103,11 +103,11 @@
       <option value="COMPRADO">COMPRADO</option>
       <option value="NO CARRINHO">NO CARRINHO</option>
       <option value="NEGADO">NEGADO</option>
+      <option value="ENTREGUE">ENTREGUE</option>
+      <option value="SEM ESTOQUE">SEM ESTOQUE</option>
     </select>
     <button onclick="carregarRequisicoes()">🔍 Filtrar</button>
-    <button onclick="liquidarMassa('COMPRADO')">💰 Marcar como COMPRADO</button>
-    <button onclick="liquidarMassa('NO CARRINHO')">🛒 Marcar como NO CARRINHO</button>
-    <button onclick="liquidarMassa('NEGADO')">❌ Marcar como NEGADO</button>
+    <button onclick="liquidarMassa('ENTREGUE')">📦 Marcar como ENTREGUE</button>
   </div>
 
   <div class="alerta" id="alertaStatus">Atualizando status...</div>
@@ -129,7 +129,7 @@
   </table>
 
   <script>
-    const endpoint = 'https://script.google.com/macros/s/AKfycbzpA5pl1XyRoEdQ0edKhNHq_ZpUpmx4nHVy9-joLjizMZgw0WmM1A7FVrjjx-N2Cijchg/exec';
+    const endpoint = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
     let dadosRequisicoes = [];
 
     async function carregarRequisicoes() {
@@ -170,6 +170,8 @@
               <option value="COMPRADO" ${item.status === 'COMPRADO' ? 'selected' : ''}>COMPRADO</option>
               <option value="NO CARRINHO" ${item.status === 'NO CARRINHO' ? 'selected' : ''}>NO CARRINHO</option>
               <option value="NEGADO" ${item.status === 'NEGADO' ? 'selected' : ''}>NEGADO</option>
+              <option value="ENTREGUE" ${item.status === 'ENTREGUE' ? 'selected' : ''}>ENTREGUE</option>
+              <option value="SEM ESTOQUE" ${item.status === 'SEM ESTOQUE' ? 'selected' : ''}>SEM ESTOQUE</option>
             </select>
           </td>`;
         tabela.appendChild(tr);
