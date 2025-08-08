@@ -107,7 +107,7 @@
   </table>
 
   <script>
-    const endpoint = 'https://script.google.com/macros/s/AKfycbyl6Bba4d8SWg7ahg3t5mRbIkTkdiSbXpiXnaRzQVAuL5kn8o3_QRx2ZFHmz6LWXj0E0w/exec'; // Substitua com seu script ID
+    const endpoint = 'https://script.google.com/macros/s/AKfycbyd1PNJons8UyOjQjeersUqStv_gA09StaZsKuoA7LK7JXF3xh4CUBQqEsqQJdtMnzd/exec'; // Substitua com seu script ID
 
     async function carregarRequisicoes() {
       const res = await fetch(`${endpoint}?acao=ler`);
@@ -120,12 +120,13 @@
       const dataInicio = document.getElementById('dataInicio').value;
       const dataFim = document.getElementById('dataFim').value;
 
-      dados.forEach((item, index) => {
+      dados.forEach((item) => {
+        const dataFormatada = item.dataHora?.split(' ')[0] || '';
         if (filtroStatus !== 'TODOS' && item.status !== filtroStatus) return;
         if (filtroItem && !item.item.toLowerCase().includes(filtroItem)) return;
         if (filtroSolicitante && !item.solicitante.toLowerCase().includes(filtroSolicitante)) return;
-        if (dataInicio && item.data < dataInicio) return;
-        if (dataFim && item.data > dataFim) return;
+        if (dataInicio && dataFormatada < dataInicio) return;
+        if (dataFim && dataFormatada > dataFim) return;
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -137,7 +138,7 @@
           <td>${item.solicitante}</td>
           <td>${item.observacoes}</td>
           <td>
-            <select class="status" onchange="atualizarStatus(${index}, this.value)">
+            <select class="status" onchange="atualizarStatus(${item.index}, this.value)">
               <option value="PENDENTE" ${item.status === 'PENDENTE' ? 'selected' : ''}>PENDENTE</option>
               <option value="COMPRADO" ${item.status === 'COMPRADO' ? 'selected' : ''}>COMPRADO</option>
             </select>
