@@ -1,4 +1,4 @@
-<!-- Painel atualizado com alerta de sucesso após alteração em massa -->
+<!-- Painel atualizado com filtro completo de data e hora -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -170,7 +170,7 @@
   </table>
 
   <script>
-    const endpoint = 'https://script.google.com/macros/s/AKfycbyd0Y97gZLl7ciUUAPT0pwQQSjDliJMJ7F43qy-pS_Bd0RkMRT5BNllud0xdDRHP_YtUg/exec';
+    const endpoint = 'https://script.google.com/macros/s/AKfycbyo1gJt-YHjvGw_XMvLKfCKf3KZ3SsnlqSl1XYorIThQVoZJY5Z1tbn2eDnZQrYeGcZdQ/exec';
     let dadosFiltrados = [];
 
     async function carregarDados() {
@@ -184,13 +184,26 @@
         dadosFiltrados = [];
 
         const statusSelecionado = document.getElementById("statusFiltro").value;
+        const dataDe = document.getElementById("dataDe").value;
+        const horaDe = document.getElementById("horaInicial").value;
+        const dataAte = document.getElementById("dataAte").value;
+        const horaAte = document.getElementById("horaFinal").value;
+        const palavra = document.getElementById("palavraChave").value.toLowerCase();
+
+        const dataHoraInicial = dataDe ? new Date(`${dataDe}T${horaDe || '00:00'}`) : null;
+        const dataHoraFinal = dataAte ? new Date(`${dataAte}T${horaAte || '23:59'}`) : null;
 
         dados.forEach(item => {
+          const dataHoraItem = new Date(item["Data e Hora"]);
+          if (dataHoraInicial && dataHoraItem < dataHoraInicial) return;
+          if (dataHoraFinal && dataHoraItem > dataHoraFinal) return;
+
           let status = (item["Status"] || '').toUpperCase();
           if (status === 'PROCESSANDO') status = 'PENDENTE';
-
           const statusFinal = ['COMPRADO', 'NEGADO'].includes(status) ? status : 'PENDENTE';
+
           if (statusSelecionado && statusSelecionado !== statusFinal) return;
+          if (palavra && !JSON.stringify(item).toLowerCase().includes(palavra)) return;
 
           dadosFiltrados.push({ linha: item.linha, statusAtual: statusFinal });
 
