@@ -98,8 +98,8 @@
     <input type="text" id="filtroItem" placeholder="Item ou Observação">
     <input type="text" id="filtroSolicitante" placeholder="Solicitante">
     <select id="filtroStatus">
+      <option value="PENDENTE" selected>PENDENTE</option>
       <option value="TODOS">TODOS</option>
-      <option value="PENDENTE">PENDENTE</option>
       <option value="COMPRADO">COMPRADO</option>
       <option value="NO CARRINHO">NO CARRINHO</option>
       <option value="NEGADO">NEGADO</option>
@@ -129,7 +129,7 @@
   </table>
 
   <script>
-    const endpoint = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+    const endpoint = 'https://script.google.com/macros/s/AKfycbyKdPRq8z-XzHzGP0SfL_TEBVoceAzW9bdDgBVLu0W-EMN6YEkQU2AEq7NPW2k-41MHog/exec';
     let dadosRequisicoes = [];
 
     async function carregarRequisicoes() {
@@ -147,9 +147,20 @@
       const dataInicio = document.getElementById('dataInicio').value;
       const dataFim = document.getElementById('dataFim').value;
 
+      const statusValidos = ['COMPRADO', 'NO CARRINHO', 'NEGADO', 'ENTREGUE', 'SEM ESTOQUE'];
+
       dadosRequisicoes.forEach((item) => {
         const dataFormatada = item.dataHora?.split(' ')[0] || '';
-        if (filtroStatus !== 'TODOS' && item.status !== filtroStatus) return;
+
+        const statusAtual = (item.status || '').trim().toUpperCase();
+        const consideraPendente = !statusValidos.includes(statusAtual);
+        const statusFiltrado = filtroStatus.toUpperCase();
+
+        if (statusFiltrado !== 'TODOS') {
+          if (statusFiltrado === 'PENDENTE' && !consideraPendente) return;
+          if (statusFiltrado !== 'PENDENTE' && statusAtual !== statusFiltrado) return;
+        }
+
         if (filtroItem && !item.item.toLowerCase().includes(filtroItem)) return;
         if (filtroSolicitante && !item.solicitante.toLowerCase().includes(filtroSolicitante)) return;
         if (dataInicio && dataFormatada < dataInicio) return;
@@ -166,12 +177,12 @@
           <td>${item.observacoes}</td>
           <td>
             <select class="status" onchange="atualizarStatus(${item.index}, this.value)">
-              <option value="PENDENTE" ${item.status === 'PENDENTE' ? 'selected' : ''}>PENDENTE</option>
-              <option value="COMPRADO" ${item.status === 'COMPRADO' ? 'selected' : ''}>COMPRADO</option>
-              <option value="NO CARRINHO" ${item.status === 'NO CARRINHO' ? 'selected' : ''}>NO CARRINHO</option>
-              <option value="NEGADO" ${item.status === 'NEGADO' ? 'selected' : ''}>NEGADO</option>
-              <option value="ENTREGUE" ${item.status === 'ENTREGUE' ? 'selected' : ''}>ENTREGUE</option>
-              <option value="SEM ESTOQUE" ${item.status === 'SEM ESTOQUE' ? 'selected' : ''}>SEM ESTOQUE</option>
+              <option value="PENDENTE" ${statusAtual === 'PENDENTE' || consideraPendente ? 'selected' : ''}>PENDENTE</option>
+              <option value="COMPRADO" ${statusAtual === 'COMPRADO' ? 'selected' : ''}>COMPRADO</option>
+              <option value="NO CARRINHO" ${statusAtual === 'NO CARRINHO' ? 'selected' : ''}>NO CARRINHO</option>
+              <option value="NEGADO" ${statusAtual === 'NEGADO' ? 'selected' : ''}>NEGADO</option>
+              <option value="ENTREGUE" ${statusAtual === 'ENTREGUE' ? 'selected' : ''}>ENTREGUE</option>
+              <option value="SEM ESTOQUE" ${statusAtual === 'SEM ESTOQUE' ? 'selected' : ''}>SEM ESTOQUE</option>
             </select>
           </td>`;
         tabela.appendChild(tr);
@@ -194,9 +205,17 @@
       const dataInicio = document.getElementById('dataInicio').value;
       const dataFim = document.getElementById('dataFim').value;
 
+      const statusValidos = ['COMPRADO', 'NO CARRINHO', 'NEGADO', 'ENTREGUE', 'SEM ESTOQUE'];
+
       const filtrados = dadosRequisicoes.filter((item) => {
         const dataFormatada = item.dataHora?.split(' ')[0] || '';
-        if (filtroStatus !== 'TODOS' && item.status !== filtroStatus) return false;
+        const statusAtual = (item.status || '').trim().toUpperCase();
+        const consideraPendente = !statusValidos.includes(statusAtual);
+
+        if (filtroStatus !== 'TODOS') {
+          if (filtroStatus === 'PENDENTE' && !consideraPendente) return false;
+          if (filtroStatus !== 'PENDENTE' && statusAtual !== filtroStatus.toUpperCase()) return false;
+        }
         if (filtroItem && !item.item.toLowerCase().includes(filtroItem)) return false;
         if (filtroSolicitante && !item.solicitante.toLowerCase().includes(filtroSolicitante)) return false;
         if (dataInicio && dataFormatada < dataInicio) return false;
