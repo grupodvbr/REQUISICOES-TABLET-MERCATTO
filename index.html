@@ -1,4 +1,4 @@
-<!-- Painel atualizado com mudança de status em massa -->
+<!-- Painel atualizado com alerta de sucesso após alteração em massa -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -11,6 +11,7 @@
       --cor-verde: #28a745;
       --cor-vermelho: #dc3545;
       --cor-cinza: #f1f1f1;
+      --cor-sucesso: #d4edda;
     }
     * { box-sizing: border-box; }
     body {
@@ -52,6 +53,14 @@
       font-size: 1.3em;
       font-weight: bold;
       color: #444;
+    }
+    #alerta-sucesso {
+      background-color: var(--cor-sucesso);
+      color: #155724;
+      text-align: center;
+      padding: 10px;
+      font-weight: bold;
+      display: none;
     }
     .filtros {
       display: flex;
@@ -116,6 +125,8 @@
     <p>Carregando...</p>
   </div>
 
+  <div id="alerta-sucesso">✅ Status alterado com sucesso!</div>
+
   <div class="filtros">
     <input type="date" id="dataDe" />
     <input type="time" id="horaInicial" />
@@ -159,11 +170,12 @@
   </table>
 
   <script>
-    const endpoint = 'https://script.google.com/macros/s/AKfycbyo1gJt-YHjvGw_XMvLKfCKf3KZ3SsnlqSl1XYorIThQVoZJY5Z1tbn2eDnZQrYeGcZdQ/exec';
+    const endpoint = 'https://script.google.com/macros/s/AKfycbyd0Y97gZLl7ciUUAPT0pwQQSjDliJMJ7F43qy-pS_Bd0RkMRT5BNllud0xdDRHP_YtUg/exec';
     let dadosFiltrados = [];
 
     async function carregarDados() {
       document.getElementById("overlay-carregando").style.display = "flex";
+      document.getElementById("alerta-sucesso").style.display = "none";
       try {
         const res = await fetch(endpoint + '?acao=ler');
         const dados = await res.json();
@@ -207,7 +219,7 @@
       const novoStatus = document.getElementById("novoStatusMassa").value;
       if (!novoStatus) return alert("Selecione um novo status.");
 
-      if (!confirm(`Deseja alterar o status de ${dadosFiltrados.length} itens para "${novoStatus}"?`)) return;
+      if (!confirm(`Deseja alterar o status de ${dadosFiltrados.length} itens para \"${novoStatus}\"?`)) return;
 
       document.getElementById("overlay-carregando").style.display = "flex";
 
@@ -227,6 +239,8 @@
         }
       }
 
+      document.getElementById("alerta-sucesso").style.display = "block";
+      setTimeout(() => document.getElementById("alerta-sucesso").style.display = "none", 4000);
       carregarDados();
     }
 
