@@ -1,4 +1,4 @@
-<!-- Painel atualizado com filtro completo de data e hora -->
+<!-- Painel atualizado com filtro completo e botão de alteração individual de status -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -216,7 +216,13 @@
             <td>${item["Setor"] || ''}</td>
             <td>${item["Solicitante"] || ''}</td>
             <td>${item["Observações"] || ''}</td>
-            <td>${statusFinal}</td>
+            <td>
+              <select onchange="atualizarStatusIndividual(${item.linha}, this.value)">
+                <option value="PENDENTE" ${statusFinal === 'PENDENTE' ? 'selected' : ''}>PENDENTE</option>
+                <option value="COMPRADO" ${statusFinal === 'COMPRADO' ? 'selected' : ''}>COMPRADO</option>
+                <option value="NEGADO" ${statusFinal === 'NEGADO' ? 'selected' : ''}>NEGADO</option>
+              </select>
+            </td>
           `;
           tbody.appendChild(tr);
         });
@@ -225,6 +231,28 @@
         console.error(e);
       } finally {
         document.getElementById("overlay-carregando").style.display = "none";
+      }
+    }
+
+    async function atualizarStatusIndividual(linha, status) {
+      document.getElementById("overlay-carregando").style.display = "flex";
+      try {
+        await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            acao: "atualizarStatus",
+            linha: linha,
+            status: status
+          })
+        });
+        document.getElementById("alerta-sucesso").style.display = "block";
+        setTimeout(() => document.getElementById("alerta-sucesso").style.display = "none", 4000);
+      } catch (e) {
+        alert("Erro ao atualizar status.");
+        console.error(e);
+      } finally {
+        carregarDados();
       }
     }
 
