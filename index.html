@@ -1,66 +1,36 @@
-<!-- Painel atualizado com filtro completo e botão de alteração individual de status -->
+<!-- Painel adaptado para REQUISIÇÕES MERCATTO com filtros e dados da planilha enviada -->
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel de Requisições Mercatto Delícia</title>
+  <title>REQUISIÇÕES MERCATTO</title>
   <style>
     :root {
       --cor-azul: #007bff;
-      --cor-verde: #28a745;
       --cor-vermelho: #dc3545;
       --cor-cinza: #f1f1f1;
-      --cor-sucesso: #d4edda;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       font-family: 'Arial', sans-serif;
-      background: white;
+      background: var(--cor-cinza);
     }
     header {
       display: flex;
       align-items: center;
-      padding: 15px 20px;
+      padding: 15px;
+      background: white;
       border-bottom: 2px solid var(--cor-cinza);
     }
     header img {
-      height: 60px;
-      margin-right: 15px;
+      height: 50px;
+      margin-right: 10px;
     }
     header h1 {
-      font-size: 1.6em;
       margin: 0;
-      flex: 1;
-      text-align: center;
-    }
-    #overlay-carregando {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(255,255,255,0.9);
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 9998;
-    }
-    #overlay-carregando img {
-      width: 130px;
-      margin-bottom: 15px;
-    }
-    #overlay-carregando p {
-      font-size: 1.3em;
-      font-weight: bold;
-      color: #444;
-    }
-    #alerta-sucesso {
-      background-color: var(--cor-sucesso);
-      color: #155724;
-      text-align: center;
-      padding: 10px;
-      font-weight: bold;
-      display: none;
+      font-size: 1.5em;
     }
     .filtros {
       display: flex;
@@ -68,89 +38,56 @@
       justify-content: center;
       gap: 10px;
       padding: 15px;
-      background: var(--cor-cinza);
+      background: white;
     }
-    .filtros input, .filtros select {
-      padding: 10px;
-      font-size: 1em;
-      border-radius: 5px;
+    .filtros input, .filtros select, .filtros button {
+      padding: 8px;
+      font-size: 14px;
+      border-radius: 4px;
       border: 1px solid #ccc;
-      min-width: 150px;
     }
     .filtros button {
-      padding: 10px 20px;
-      font-size: 1em;
-      font-weight: bold;
       background: var(--cor-azul);
       color: white;
       border: none;
-      border-radius: 5px;
       cursor: pointer;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      font-size: 1em;
+      background: white;
     }
     thead {
       background: var(--cor-azul);
       color: white;
     }
     th, td {
-      padding: 10px;
+      padding: 8px;
       border: 1px solid #ddd;
       text-align: center;
     }
-    .acoes-topo {
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-      margin: 15px 0;
-    }
-    @media (max-width: 768px) {
-      .filtros input, .filtros select, .filtros button, .acoes-topo button {
-        width: 100%;
-      }
+    select.status {
+      padding: 5px;
     }
   </style>
 </head>
 <body>
   <header>
-    <img src="https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png" alt="Logo" />
-    <h1>Painel de Requisições Mercatto Delícia</h1>
+    <img src="https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png" alt="Logo">
+    <h1>REQUISIÇÕES MERCATTO</h1>
   </header>
 
-  <div id="overlay-carregando">
-    <img src="https://static.wixstatic.com/media/d830b0_8cec50a98bbf4775814dbfa5386585e8~mv2.png" alt="Carregando..." />
-    <p>Carregando...</p>
-  </div>
-
-  <div id="alerta-sucesso">✅ Status alterado com sucesso!</div>
-
   <div class="filtros">
-    <input type="date" id="dataDe" />
-    <input type="time" id="horaInicial" />
-    <input type="date" id="dataAte" />
-    <input type="time" id="horaFinal" />
-    <select id="solicitante"><option>Todos</option></select>
-    <select id="setor"><option>Todos</option></select>
-    <input type="text" id="palavraChave" placeholder="Buscar item ou observação" />
-    <select id="statusFiltro">
+    <input type="date" id="dataInicio" placeholder="Data Início">
+    <input type="date" id="dataFim" placeholder="Data Fim">
+    <input type="text" id="filtroItem" placeholder="Item ou Observação">
+    <input type="text" id="filtroSolicitante" placeholder="Solicitante">
+    <select id="filtroStatus">
+      <option value="TODOS">TODOS</option>
       <option value="PENDENTE">PENDENTE</option>
       <option value="COMPRADO">COMPRADO</option>
-      <option value="NEGADO">NEGADO</option>
     </select>
-    <button onclick="carregarDados()">🔎 Filtrar</button>
-  </div>
-
-  <div class="acoes-topo">
-    <select id="novoStatusMassa">
-      <option value="">Alterar status para...</option>
-      <option value="COMPRADO">COMPRADO</option>
-      <option value="NEGADO">NEGADO</option>
-      <option value="PENDENTE">PENDENTE</option>
-    </select>
-    <button onclick="alterarStatusEmMassa()">✅ Aplicar em Massa</button>
+    <button onclick="carregarRequisicoes()">🔍 Filtrar</button>
   </div>
 
   <table>
@@ -170,122 +107,55 @@
   </table>
 
   <script>
-    const endpoint = 'https://script.google.com/macros/s/AKfycbyl6Bba4d8SWg7ahg3t5mRbIkTkdiSbXpiXnaRzQVAuL5kn8o3_QRx2ZFHmz6LWXj0E0w/exec';
-    let dadosFiltrados = [];
+    const endpoint = 'https://script.google.com/macros/s/AKfycbyl6Bba4d8SWg7ahg3t5mRbIkTkdiSbXpiXnaRzQVAuL5kn8o3_QRx2ZFHmz6LWXj0E0w/exec'; // Substitua com seu script ID
 
-    async function carregarDados() {
-      document.getElementById("overlay-carregando").style.display = "flex";
-      document.getElementById("alerta-sucesso").style.display = "none";
-      try {
-        const res = await fetch(endpoint + '?acao=ler');
-        const dados = await res.json();
-        const tbody = document.getElementById("tabelaRequisicoes");
-        tbody.innerHTML = "";
-        dadosFiltrados = [];
+    async function carregarRequisicoes() {
+      const res = await fetch(`${endpoint}?acao=ler`);
+      const dados = await res.json();
+      const tabela = document.getElementById('tabelaRequisicoes');
+      tabela.innerHTML = '';
+      const filtroStatus = document.getElementById('filtroStatus').value;
+      const filtroItem = document.getElementById('filtroItem').value.toLowerCase();
+      const filtroSolicitante = document.getElementById('filtroSolicitante').value.toLowerCase();
+      const dataInicio = document.getElementById('dataInicio').value;
+      const dataFim = document.getElementById('dataFim').value;
 
-        const statusSelecionado = document.getElementById("statusFiltro").value;
-        const dataDe = document.getElementById("dataDe").value;
-        const horaDe = document.getElementById("horaInicial").value;
-        const dataAte = document.getElementById("dataAte").value;
-        const horaAte = document.getElementById("horaFinal").value;
-        const palavra = document.getElementById("palavraChave").value.toLowerCase();
+      dados.forEach((item, index) => {
+        if (filtroStatus !== 'TODOS' && item.status !== filtroStatus) return;
+        if (filtroItem && !item.item.toLowerCase().includes(filtroItem)) return;
+        if (filtroSolicitante && !item.solicitante.toLowerCase().includes(filtroSolicitante)) return;
+        if (dataInicio && item.data < dataInicio) return;
+        if (dataFim && item.data > dataFim) return;
 
-        const dataHoraInicial = dataDe ? new Date(`${dataDe}T${horaDe || '00:00'}`) : null;
-        const dataHoraFinal = dataAte ? new Date(`${dataAte}T${horaAte || '23:59'}`) : null;
-
-        dados.forEach(item => {
-          const dataHoraItem = new Date(item["Data e Hora"]);
-          if (dataHoraInicial && dataHoraItem < dataHoraInicial) return;
-          if (dataHoraFinal && dataHoraItem > dataHoraFinal) return;
-
-          let status = (item["Status"] || '').toUpperCase();
-          if (status === 'PROCESSANDO') status = 'PENDENTE';
-          const statusFinal = ['COMPRADO', 'NEGADO'].includes(status) ? status : 'PENDENTE';
-
-          if (statusSelecionado && statusSelecionado !== statusFinal) return;
-          if (palavra && !JSON.stringify(item).toLowerCase().includes(palavra)) return;
-
-          dadosFiltrados.push({ linha: item.linha, statusAtual: statusFinal });
-
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${item["Data e Hora"] || ''}</td>
-            <td>${item["Item"] || ''}</td>
-            <td>${item["Qtd"] || ''}</td>
-            <td>${item["Unidade"] || ''}</td>
-            <td>${item["Setor"] || ''}</td>
-            <td>${item["Solicitante"] || ''}</td>
-            <td>${item["Observações"] || ''}</td>
-            <td>
-              <select onchange="atualizarStatusIndividual(${item.linha}, this.value)">
-                <option value="PENDENTE" ${statusFinal === 'PENDENTE' ? 'selected' : ''}>PENDENTE</option>
-                <option value="COMPRADO" ${statusFinal === 'COMPRADO' ? 'selected' : ''}>COMPRADO</option>
-                <option value="NEGADO" ${statusFinal === 'NEGADO' ? 'selected' : ''}>NEGADO</option>
-              </select>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
-      } catch (e) {
-        alert("Erro ao carregar dados.");
-        console.error(e);
-      } finally {
-        document.getElementById("overlay-carregando").style.display = "none";
-      }
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${item.dataHora}</td>
+          <td>${item.item}</td>
+          <td>${item.qtd}</td>
+          <td>${item.unidade}</td>
+          <td>${item.setor}</td>
+          <td>${item.solicitante}</td>
+          <td>${item.observacoes}</td>
+          <td>
+            <select class="status" onchange="atualizarStatus(${index}, this.value)">
+              <option value="PENDENTE" ${item.status === 'PENDENTE' ? 'selected' : ''}>PENDENTE</option>
+              <option value="COMPRADO" ${item.status === 'COMPRADO' ? 'selected' : ''}>COMPRADO</option>
+            </select>
+          </td>`;
+        tabela.appendChild(tr);
+      });
     }
 
-    async function atualizarStatusIndividual(linha, status) {
-      document.getElementById("overlay-carregando").style.display = "flex";
-      try {
-        await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            acao: "atualizarStatus",
-            linha: linha,
-            status: status
-          })
-        });
-        document.getElementById("alerta-sucesso").style.display = "block";
-        setTimeout(() => document.getElementById("alerta-sucesso").style.display = "none", 4000);
-      } catch (e) {
-        alert("Erro ao atualizar status.");
-        console.error(e);
-      } finally {
-        carregarDados();
-      }
+    async function atualizarStatus(index, status) {
+      await fetch(endpoint, {
+        method: 'POST',
+        body: JSON.stringify({ acao: 'atualizarStatus', index, status })
+      });
+      alert("Status atualizado com sucesso!");
+      carregarRequisicoes();
     }
 
-    async function alterarStatusEmMassa() {
-      const novoStatus = document.getElementById("novoStatusMassa").value;
-      if (!novoStatus) return alert("Selecione um novo status.");
-
-      if (!confirm(`Deseja alterar o status de ${dadosFiltrados.length} itens para \"${novoStatus}\"?`)) return;
-
-      document.getElementById("overlay-carregando").style.display = "flex";
-
-      for (const item of dadosFiltrados) {
-        try {
-          await fetch(endpoint, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              acao: "atualizarStatus",
-              linha: item.linha,
-              status: novoStatus
-            })
-          });
-        } catch (e) {
-          console.error("Erro ao atualizar linha", item.linha, e);
-        }
-      }
-
-      document.getElementById("alerta-sucesso").style.display = "block";
-      setTimeout(() => document.getElementById("alerta-sucesso").style.display = "none", 4000);
-      carregarDados();
-    }
-
-    carregarDados();
+    carregarRequisicoes();
   </script>
 </body>
 </html>
