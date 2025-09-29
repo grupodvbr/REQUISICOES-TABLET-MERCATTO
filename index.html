@@ -221,16 +221,7 @@
       document.getElementById("overlay-carregando").style.display = "none";
     }
 
-    function formatarDataHora(dataHoraOriginal) {
-      if (!dataHoraOriginal) return "";
-      const partes = dataHoraOriginal.split(" ");
-      const data = partes[0];
-      const hora = partes[1] || '';
-      const [ano, mes, dia] = data.split("-");
-      const meses = ["janeiro", "fevereiro", "março", "abril", "maio", "junho",
-                     "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
-      return `${dia} ${meses[parseInt(mes) - 1]} ${ano} - ${hora}`;
-    }
+function formatarDataHora(dataHoraOriginal) {
 
     function filtrarRequisicoes() {
       const tabela = document.getElementById('tabelaRequisicoes');
