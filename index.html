@@ -290,14 +290,22 @@ function formatarDataHora(dataHoraOriginal) {
       });
     }
 
-    async function atualizarStatus(index, status) {
-      mostrarAlerta("Atualizando status...");
-      await fetch(endpoint, {
-        method: 'POST',
-        body: JSON.stringify({ acao: 'atualizarStatus', index, status })
-      });
-      carregarRequisicoes();
-    }
+async function atualizarStatus(index, status) {
+  mostrarAlerta("Atualizando status...");
+  const res = await fetch(endpoint, {
+    method: 'POST',
+    body: JSON.stringify({ acao: 'atualizarStatus', index, status })
+  });
+
+  // Atualiza o objeto em memória sem recarregar tudo
+  const item = dadosRequisicoes.find(r => r.index === index);
+  if (item) {
+    item.status = status;
+  }
+
+  mostrarAlerta("Status atualizado!");
+}
+
 
     function toggleSolicitantes() {
       const lista = document.getElementById("lista-solicitantes");
